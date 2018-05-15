@@ -13,6 +13,7 @@ public class FaceCalloutManager : MonoBehaviour {
 	public GameObject calloutPrefab_L;
 	public GameObject calloutPrefab_R;		
 	public Transform debugPrefab;
+	public Transform player;
 	
 	List<FaceCallout> faceCalloutList;
 	
@@ -74,6 +75,7 @@ public class FaceCalloutManager : MonoBehaviour {
 
 		foreach(var f in faceCalloutList){
 			f.FaceUpdated(anchorData);
+			f.lookAtPlayer(player);
 		}
 		
 		//draw face mesh
@@ -97,14 +99,17 @@ public class FaceCalloutManager : MonoBehaviour {
 		faceCalloutList = new List<FaceCallout>();
 		FaceCallout f;
 
- 		f = (Instantiate(calloutPrefab) as GameObject).GetComponent<FaceCallout>();
+ 		f = (Instantiate(calloutPrefab_R) as GameObject).GetComponent<FaceCallout>();
 		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
-		f.setTitle("Left Cheek");
+		f.setTitle("Right Cheek");
 		f.setDescription("some description");		
-		f.pointIndex = 150;
+		f.pointIndex = 630;
 		f.blendShapeStrings = new List<string>{
 			"cheekPuff",
-			"cheekSquint_L"
+			"cheekSquint_R",
+			"jawForward",
+			"jaw_R",
+			"jawOpen"
 		};
 		f.leftAligned = false;
 		faceCalloutList.Add(f);
@@ -119,10 +124,10 @@ public class FaceCalloutManager : MonoBehaviour {
 			"browInnerUp",
 			"browOuterUpLeft"
 		};
-		f.leftAligned = false;
+		f.leftAligned = true;
 		faceCalloutList.Add(f);
 
-		f = (Instantiate(calloutPrefab) as GameObject).GetComponent<FaceCallout>();
+		f = (Instantiate(calloutPrefab_R) as GameObject).GetComponent<FaceCallout>();
 		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
 		f.setTitle("Right Eye");
 		f.setDescription("eye descrip");
@@ -136,18 +141,15 @@ public class FaceCalloutManager : MonoBehaviour {
 			"eyeSquint_R",
 			"eyeWide_R"
 		};
-		f.leftAligned = true;
+		f.leftAligned = false;
 		faceCalloutList.Add(f);
 
-		f = (Instantiate(calloutPrefab) as GameObject).GetComponent<FaceCallout>();
+		f = (Instantiate(calloutPrefab_L) as GameObject).GetComponent<FaceCallout>();
 		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
 		f.setTitle("Left Mouth");
 		f.setDescription("mouth descrip");
 		f.pointIndex = 240;
 		f.blendShapeStrings = new List<string>{
-			"jawForward",
-			"jaw_L",
-			"jawOpen",
 			"mouthClose",
 			"mouthFunnel",
 			"mouthPucker",

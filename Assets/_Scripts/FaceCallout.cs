@@ -71,6 +71,13 @@ public class FaceCallout : MonoBehaviour {
 		description = myDescription;
 	}
 
+	public void lookAtPlayer(Transform player){
+		Transform t = canvas.GetComponent<Transform>();
+		t.LookAt(player);
+		t.rotation = Quaternion.Euler(0 , 0, 90);
+		
+	}
+
 
 	void getTextComponents(){
 				
