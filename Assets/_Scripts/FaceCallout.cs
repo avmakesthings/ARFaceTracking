@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.iOS;
+using UnityEngine.UI;
 using TMPro;
 
 public class FaceCallout : MonoBehaviour {
@@ -14,8 +15,8 @@ public class FaceCallout : MonoBehaviour {
 	public List<string> blendShapeStrings;
 	public bool leftAligned;
 	
-	TextMeshPro titleTextComponent;
-	TextMeshPro descriptionTextComponent;	
+	TextMeshProUGUI titleTextComponent;
+	TextMeshProUGUI descriptionTextComponent;	
 
 
 	void Awake(){
@@ -54,16 +55,15 @@ public class FaceCallout : MonoBehaviour {
 
 	void getTextComponents(){
 				
-		Transform thisTransform = this.GetComponent<Transform>();
-		foreach (Transform t in thisTransform)
-		{
+		foreach( Transform t in GetComponentsInChildren<Transform>() ){
 			if(t.name == "Title"){
-				titleTextComponent = t.GetComponent<TextMeshPro>();
+				titleTextComponent = t.GetComponent<TextMeshProUGUI>();
 			}
 			if (t.name == "Description"){
-				descriptionTextComponent = t.GetComponent<TextMeshPro>();
+				descriptionTextComponent = t.GetComponent<TextMeshProUGUI>();
 			}
 		}
+
 
 		if(titleTextComponent == null || descriptionTextComponent == null ){
 			throw new Exception("Unable to get text components in Face Callout");
