@@ -10,12 +10,16 @@ public class FaceCalloutManager : MonoBehaviour {
 	private MeshFilter meshFilter;
 
 	public GameObject calloutPrefab;
+	public GameObject calloutPrefab_L;
+	public GameObject calloutPrefab_R;		
 	public Transform debugPrefab;
 	
 	List<FaceCallout> faceCalloutList;
 	
 	private Mesh faceDebugMesh;
 	private UnityARSessionNativeInterface m_session;
+	
+
 
 	
 
@@ -40,6 +44,7 @@ public class FaceCalloutManager : MonoBehaviour {
 		}
 
 		initializeCallouts();
+
 	}
 	
 
@@ -56,6 +61,7 @@ public class FaceCalloutManager : MonoBehaviour {
 		// foreach(var k in anchorData.blendShapes){
 		// 	print(k);
 		// }
+		
 	}
 
 
@@ -71,8 +77,10 @@ public class FaceCalloutManager : MonoBehaviour {
 		}
 		
 		//draw face mesh
-		//updateDebugFaceMesh(anchorData);
+		updateDebugFaceMesh(anchorData);
 		updateFaceCalloutPositions(anchorData);
+
+		
 	}
 
 
@@ -165,6 +173,7 @@ public class FaceCalloutManager : MonoBehaviour {
 
 		foreach(var f in faceCalloutList){
 			f.setBaseLocation(anchorData.faceGeometry.vertices[f.pointIndex]);
+			//f.setCalloutLine();
 		}
 	}
 
@@ -191,5 +200,6 @@ public class FaceCalloutManager : MonoBehaviour {
 
 
 	}
+
 	
 }

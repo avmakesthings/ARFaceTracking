@@ -18,10 +18,18 @@ public class FaceCallout : MonoBehaviour {
 	TextMeshProUGUI titleTextComponent;
 	TextMeshProUGUI descriptionTextComponent;	
 
+	private LineRenderer calloutLine;
+	private Canvas canvas;
+	private Vector3 basePosition;
 
 	void Awake(){
+
 		getTextComponents();
+		canvas = GetComponentInChildren<Canvas>();
+		calloutLine = GetComponentInChildren<LineRenderer>();
+
 	}
+
 
 	public void FaceUpdated(ARFaceAnchor anchorData){
 		string t = "";
@@ -31,6 +39,7 @@ public class FaceCallout : MonoBehaviour {
 			}
 		}
 		setDescription(t);
+
 	}
 
 
@@ -38,13 +47,23 @@ public class FaceCallout : MonoBehaviour {
 	public void setBaseLocation(Vector3 point){
 		Transform thisTransform = this.GetComponent<Transform>();
 		thisTransform.localPosition = point;
+		setCalloutLine();
 	}
+
+
+
+	public void setCalloutLine(){
+		calloutLine.SetPosition(0, canvas.GetComponent<Transform>().position);
+		calloutLine.SetPosition(1, this.GetComponent<Transform>().position);
+	}
+
 
 
 	public void setTitle(string myTitle){
 		titleTextComponent.text = myTitle;
 		title = myTitle;
 	}
+
 
 
 	public void setDescription(string myDescription){
