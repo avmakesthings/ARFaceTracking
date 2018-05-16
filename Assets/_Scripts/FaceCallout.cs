@@ -13,6 +13,7 @@ public class FaceCallout : MonoBehaviour {
 	public string description;
 	public int pointIndex; 
 	public List<string> blendShapeStrings;
+	public Dictionary<string,float> activationThresholds;
 	public bool leftAligned;
 	
 	TextMeshProUGUI titleTextComponent;
@@ -35,7 +36,11 @@ public class FaceCallout : MonoBehaviour {
 		string t = "";
 		foreach(var b in blendShapeStrings){
 			if(anchorData.blendShapes.ContainsKey(b)){
-				t += String.Format("{0} : {1} \n",b, anchorData.blendShapes[b].ToString("F2"));
+				string valueCol = "#FFF";
+				if(anchorData.blendShapes[b]>0.5){
+					valueCol = "#E484ff";
+				}
+				t += String.Format("{0} : <color={1}> {2} <color=#FFF> \n",b, valueCol, anchorData.blendShapes[b].ToString("F2"));
 			}
 		}
 		setDescription(t);

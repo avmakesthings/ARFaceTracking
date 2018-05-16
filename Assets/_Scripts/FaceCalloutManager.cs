@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.iOS;
@@ -16,17 +17,25 @@ public class FaceCalloutManager : MonoBehaviour {
 	public Transform player;
 	
 	List<FaceCallout> faceCalloutList;
+	Animator anim;
+
+	public ParticleSystem smilePartSys;
+	public AudioSource smileAudio;
+	public AudioSource blinkAudio;
+	public AudioSource makeupAudio;
 	
 	private Mesh faceDebugMesh;
 	private UnityARSessionNativeInterface m_session;
+	private bool isPlaying;
+	private bool isSmiling;
 	
-
-
-	
-
 
 	// Use this for initialization
 	void Start () {
+
+		isPlaying = false;
+		isSmiling = false;
+
 		m_session = UnityARSessionNativeInterface.GetARSessionNativeInterface();
 
 		Application.targetFrameRate = 60;
@@ -43,9 +52,8 @@ public class FaceCalloutManager : MonoBehaviour {
 			UnityARSessionNativeInterface.ARFaceAnchorRemovedEvent += FaceRemoved;
 
 		}
-
 		initializeCallouts();
-
+		anim = GetComponent<Animator>();
 	}
 	
 
@@ -55,14 +63,7 @@ public class FaceCalloutManager : MonoBehaviour {
 		gameObject.transform.localPosition = UnityARMatrixOps.GetPosition (anchorData.transform);
 		gameObject.transform.localRotation = UnityARMatrixOps.GetRotation (anchorData.transform);
 
-		
-		
-		updateFaceCalloutPositions(anchorData);
-		
-		// foreach(var k in anchorData.blendShapes){
-		// 	print(k);
-		// }
-		
+		updateFaceCalloutPositions(anchorData);		
 	}
 
 
@@ -76,13 +77,26 @@ public class FaceCalloutManager : MonoBehaviour {
 		foreach(var f in faceCalloutList){
 			f.FaceUpdated(anchorData);
 			f.lookAtPlayer(player);
+			//iterate through thresholds
+			bool show = false;
+			
+			foreach(KeyValuePair<string, float> threshold in f.activationThresholds){
+				if(anchorData.blendShapes[threshold.Key]> threshold.Value){
+					show = true;
+				}
+			}
+			f.gameObject.SetActive(show);
+
 		}
 		
 		//draw face mesh
 		updateDebugFaceMesh(anchorData);
-		updateFaceCalloutPositions(anchorData);
+		updateFaceCalloutPositions(anchorData);		
 
-		
+		if(anchorData.blendShapes["mouthSmile_L"]> 0.9f && !isSmiling && !isPlaying){
+			 isSmiling = true;
+			 //StartCoroutine(Smiling());
+		}
 	}
 
 
@@ -100,10 +114,15 @@ public class FaceCalloutManager : MonoBehaviour {
 		FaceCallout f;
 
  		f = (Instantiate(calloutPrefab_R) as GameObject).GetComponent<FaceCallout>();
-		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
+		f.transform.parent = GameObject.Find("FaceCalloutManager").transform;
 		f.setTitle("Right Cheek");
 		f.setDescription("some description");		
 		f.pointIndex = 630;
+		f.activationThresholds = new Dictionary<string, float>() { 
+			{"cheekPuff", 0.5f},
+			{"jawOpen", 0.8f} 
+		
+		};
 		f.blendShapeStrings = new List<string>{
 			"cheekPuff",
 			"cheekSquint_R",
@@ -113,12 +132,15 @@ public class FaceCalloutManager : MonoBehaviour {
 		};
 		f.leftAligned = false;
 		faceCalloutList.Add(f);
+		f.gameObject.SetActive(false);
+
 
  		f = (Instantiate(calloutPrefab) as GameObject).GetComponent<FaceCallout>();
-		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
+		f.transform.parent = GameObject.Find("FaceCalloutManager").transform;
 		f.setTitle("Left Brow");
 		f.setDescription("another descrip");
 		f.pointIndex = 210;
+		f.activationThresholds = new Dictionary<string, float>() { {"browDown_L", 0.8f} };
 		f.blendShapeStrings = new List<string>{
 			"browDown_L",
 			"browInnerUp",
@@ -126,12 +148,18 @@ public class FaceCalloutManager : MonoBehaviour {
 		};
 		f.leftAligned = true;
 		faceCalloutList.Add(f);
+		f.gameObject.SetActive(false);
+
 
 		f = (Instantiate(calloutPrefab_R) as GameObject).GetComponent<FaceCallout>();
-		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
+		f.transform.parent = GameObject.Find("FaceCalloutManager").transform;
 		f.setTitle("Right Eye");
 		f.setDescription("eye descrip");
 		f.pointIndex = 1110;
+		f.activationThresholds = new Dictionary<string, float>() { 
+			{"eyeLookOut_R", 0.4f},
+			{"eyeLookUp_R", 0.4f},
+			 };
 		f.blendShapeStrings = new List<string>{
 			"eyeBlink_R",
 			"eyeLookDown_R",
@@ -143,12 +171,15 @@ public class FaceCalloutManager : MonoBehaviour {
 		};
 		f.leftAligned = false;
 		faceCalloutList.Add(f);
+		f.gameObject.SetActive(false);
+
 
 		f = (Instantiate(calloutPrefab_L) as GameObject).GetComponent<FaceCallout>();
-		f.transform.parent = GameObject.Find("FaceCalloutManger").transform;
+		f.transform.parent = GameObject.Find("FaceCalloutManager").transform;
 		f.setTitle("Left Mouth");
 		f.setDescription("mouth descrip");
 		f.pointIndex = 240;
+		f.activationThresholds = new Dictionary<string, float>() { {"mouthLowerDown_L", 0.33f} };
 		f.blendShapeStrings = new List<string>{
 			"mouthClose",
 			"mouthFunnel",
@@ -166,8 +197,8 @@ public class FaceCalloutManager : MonoBehaviour {
 			"mouthUpperUp_L"
 		};
 		f.leftAligned = true;
-		faceCalloutList.Add(f);
-	
+		faceCalloutList.Add(f);	
+		f.gameObject.SetActive(false);
 	}
 
 
@@ -175,7 +206,6 @@ public class FaceCalloutManager : MonoBehaviour {
 
 		foreach(var f in faceCalloutList){
 			f.setBaseLocation(anchorData.faceGeometry.vertices[f.pointIndex]);
-			//f.setCalloutLine();
 		}
 	}
 
@@ -199,9 +229,45 @@ public class FaceCalloutManager : MonoBehaviour {
 		faceDebugMesh.triangles = anchorData.faceGeometry.triangleIndices;
 		faceDebugMesh.RecalculateBounds();
 		faceDebugMesh.RecalculateNormals();
-
-
 	}
 
 	
+	public IEnumerator Smiling(){
+		print("smile coroutine started");
+		if(!isPlaying){
+			isPlaying = true;
+			smilePartSys.Play();
+			smileAudio.Play();
+			yield return new WaitForSeconds(10.0f);
+			isPlaying = false;
+			StartCoroutine(MakeUp());
+			isSmiling = false;
+		}
+    }
+
+	// public IEnumerator Blinking(){
+	// 	print("blink coroutine started");
+	// 	if(!isPlaying){
+			
+	// 		isPlaying = true;
+	// 		print(isPlaying);
+	// 		yield return new WaitForSeconds(5.0f);
+	// 	}
+		
+	// }
+
+	public IEnumerator MakeUp(){
+		print("makeup coroutine started");
+		if(!isPlaying){
+			isPlaying = true;
+			anim.Play("MakeUp");
+			makeupAudio.Play();
+			yield return new WaitForSeconds(10.0f);
+		}
+		
+	}
+
+
+
+
 }
